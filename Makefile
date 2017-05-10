@@ -8,7 +8,7 @@ LDFLAGS   := -ldflags="-s -w -X \"main.Version=$(VERSION)\" -X \"main.Revision=$
 DIST_DIRS := find * -type d -exec
 
 DOCKER_REPOSITORY := quay.io
-DOCKER_IMAGE_NAME := $(DOCKER_REPOSITORY)/dtan4/k8s-ppod-notifier
+DOCKER_IMAGE_NAME := $(DOCKER_REPOSITORY)/dtan4/k8s-pod-notifier
 DOCKER_IMAGE_TAG  ?= latest
 DOCKER_IMAGE      := $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
 
