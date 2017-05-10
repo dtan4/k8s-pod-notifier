@@ -107,17 +107,30 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, n
 								continue
 							}
 
-							if notifySuccess {
-								finishedAt := cst.State.Terminated.FinishedAt.Time
+							finishedAt := cst.State.Terminated.FinishedAt.Time
 
-								succeededFunc(&PodEvent{
-									Namespace:  pod.Namespace,
-									PodName:    pod.Name,
-									StartedAt:  startedAt,
-									FinishedAt: finishedAt,
-									ExitCode:   0,
-									Reason:     "",
-								})
+							if cst.State.Terminated.Reason == "Completed" {
+								if notifySuccess {
+									succeededFunc(&PodEvent{
+										Namespace:  pod.Namespace,
+										PodName:    pod.Name,
+										StartedAt:  startedAt,
+										FinishedAt: finishedAt,
+										ExitCode:   0,
+										Reason:     "",
+									})
+								}
+							} else {
+								if notifyFail {
+									failedFunc(&PodEvent{
+										Namespace:  pod.Namespace,
+										PodName:    pod.Name,
+										StartedAt:  startedAt,
+										FinishedAt: finishedAt,
+										ExitCode:   int(cst.State.Terminated.ExitCode),
+										Reason:     cst.State.Terminated.Reason,
+									})
+								}
 							}
 
 							break
