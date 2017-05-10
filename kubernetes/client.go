@@ -131,6 +131,8 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, s
 								ExitCode:   0,
 								Reason:     "",
 							})
+
+							break
 						}
 					case v1.PodFailed:
 						for _, cst := range pod.Status.ContainerStatuses {
@@ -148,6 +150,8 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, s
 								ExitCode:   int(cst.State.Terminated.ExitCode),
 								Reason:     cst.State.Terminated.Reason,
 							})
+
+							break
 						}
 					}
 				}
