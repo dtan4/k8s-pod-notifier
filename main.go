@@ -123,7 +123,7 @@ func main() {
 	defer cancel()
 
 	succeededFunc := func(event *k8s.PodEvent) error {
-		title := fmt.Sprintf("Pod SUCCEEDED: %s - %s", event.Namespace, event.PodName)
+		title := fmt.Sprintf("Pod Succeeded: %s - %s", event.Namespace, event.PodName)
 
 		if err := slackClient.PostMessageWithAttachment(channelID, "good", title, "", []*slack.AttachmentField{
 			&slack.AttachmentField{
@@ -143,7 +143,7 @@ func main() {
 		return nil
 	}
 	failedFunc := func(event *k8s.PodEvent) error {
-		title := fmt.Sprintf("Pod FAILED: %s - %s", event.Namespace, event.PodName)
+		title := fmt.Sprintf("Pod Failed: %s - %s", event.Namespace, event.PodName)
 
 		if err := slackClient.PostMessageWithAttachment(channelID, "danger", title, "", []*slack.AttachmentField{
 			&slack.AttachmentField{
