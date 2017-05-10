@@ -91,29 +91,34 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	succeededFunc := func(namespace, podName string, exitCode int, reason string) error {
-		title := fmt.Sprintf("Pod SUCCEEDED: %s - %s", namespace, podName)
+	succeededFunc := func(event *k8s.PodEvent) error {
+		title := fmt.Sprintf("Pod SUCCEEDED: %s - %s", event.Namespace, event.PodName)
 
 		if err := slackClient.PostMessageWithAttachment(channelID, "good", title, "", map[string]string{
-			"Result": "Succeeded",
+			"StartedAt":  event.StartedAt.String(),
+			"FinishedAt": event.FinishedAt.String(),
 		}); err != nil {
 			return err
 		}
 
-		fmt.Println("success: " + strings.Join([]string{namespace, podName, strconv.Itoa(exitCode), reason}, "\t"))
+		fmt.Println("success: " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
+
 		return nil
 	}
-	failedFunc := func(namespace, podName string, exitCode int, reason string) error {
-		title := fmt.Sprintf("Pod FAILED: %s - %s", namespace, podName)
+	failedFunc := func(event *k8s.PodEvent) error {
+		title := fmt.Sprintf("Pod FAILED: %s - %s", event.Namespace, event.PodName)
 
 		if err := slackClient.PostMessageWithAttachment(channelID, "danger", title, "", map[string]string{
-			"ExitCode": strconv.Itoa(exitCode),
-			"Reason":   reason,
+			"StartedAt":  event.StartedAt.String(),
+			"FinishedAt": event.FinishedAt.String(),
+			"ExitCode":   strconv.Itoa(event.ExitCode),
+			"Reason":     event.Reason,
 		}); err != nil {
 			return err
 		}
 
-		fmt.Println("failed:  " + strings.Join([]string{namespace, podName, strconv.Itoa(exitCode), reason}, "\t"))
+		fmt.Println("failed:  " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
+
 		return nil
 	}
 

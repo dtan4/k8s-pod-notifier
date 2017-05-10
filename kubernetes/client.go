@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"context"
+	"time"
 
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
@@ -16,8 +17,18 @@ type Client struct {
 	clientset    *kubernetes.Clientset
 }
 
+// PodEvent represents Pod termination event
+type PodEvent struct {
+	Namespace  string
+	PodName    string
+	StartedAt  time.Time
+	FinishedAt time.Time
+	ExitCode   int
+	Reason     string
+}
+
 // NotifyFunc represents callback function for Pod event
-type NotifyFunc func(namespace, podName string, exitCode int, reason string) error
+type NotifyFunc func(event *PodEvent) error
 
 // NewClient creates Client object using local kubecfg
 func NewClient(kubeconfig, context string) (*Client, error) {
@@ -81,14 +92,42 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, s
 				case watch.Modified:
 					switch pod.Status.Phase {
 					case v1.PodSucceeded:
-						succeededFunc(pod.Namespace, pod.Name, 0, "")
+						if pod.DeletionTimestamp == nil {
+							continue
+						}
+
+						startedAt := pod.CreationTimestamp.Time
+						finishedAt := pod.DeletionTimestamp.Time
+
+						succeededFunc(&PodEvent{
+							Namespace:  pod.Namespace,
+							PodName:    pod.Name,
+							StartedAt:  startedAt,
+							FinishedAt: finishedAt,
+							ExitCode:   0,
+							Reason:     "",
+						})
 					case v1.PodFailed:
+						if pod.DeletionTimestamp == nil {
+							continue
+						}
+
+						startedAt := pod.CreationTimestamp.Time
+						finishedAt := pod.DeletionTimestamp.Time
+
 						for _, cst := range pod.Status.ContainerStatuses {
 							if cst.State.Terminated == nil {
 								continue
 							}
 
-							failedFunc(pod.Namespace, pod.Name, int(cst.State.Terminated.ExitCode), cst.State.Terminated.Reason)
+							failedFunc(&PodEvent{
+								Namespace:  pod.Namespace,
+								PodName:    pod.Name,
+								StartedAt:  startedAt,
+								FinishedAt: finishedAt,
+								ExitCode:   int(cst.State.Terminated.ExitCode),
+								Reason:     cst.State.Terminated.Reason,
+							})
 						}
 					}
 				}
