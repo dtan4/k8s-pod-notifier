@@ -1,5 +1,5 @@
-hash: 873971b863b046f275b5a1d794840cdbd091733c22f901fe44fb63f4148c6ce2
-updated: 2017-05-10T15:02:20.694090706+09:00
+hash: 3ba0ff01ee1f67bb69d7ffef5bf05b7842f6933d279abb7ee604b14a101a2abe
+updated: 2017-05-10T15:31:54.501742417+09:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -73,6 +73,8 @@ imports:
   - buffer
   - jlexer
   - jwriter
+- name: github.com/nlopes/slack
+  version: 72d15a0fc0b773a59c00f78b9e7d97eeb8c4281f
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
 - name: github.com/pkg/errors
