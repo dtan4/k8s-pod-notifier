@@ -5,6 +5,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+// AttachmentField represents the field of Slack message attachment
+type AttachmentField struct {
+	Title string
+	Value string
+}
+
 // Client represents the wrapper of Slack API client
 type Client struct {
 	api *slack.Client
@@ -34,13 +40,13 @@ func (c *Client) GetChannelID(channel string) (string, error) {
 }
 
 // PostMessageWithAttachment posts message with attachment
-func (c *Client) PostMessageWithAttachment(channelID, color, title, text string, fields map[string]string) error {
+func (c *Client) PostMessageWithAttachment(channelID, color, title, text string, fields []*AttachmentField) error {
 	attachmentFields := []slack.AttachmentField{}
 
-	for k, v := range fields {
+	for _, field := range fields {
 		attachmentFields = append(attachmentFields, slack.AttachmentField{
-			Title: k,
-			Value: v,
+			Title: field.Title,
+			Value: field.Value,
 			Short: true,
 		})
 	}

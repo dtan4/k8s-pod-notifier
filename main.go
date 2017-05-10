@@ -124,9 +124,15 @@ func main() {
 	succeededFunc := func(event *k8s.PodEvent) error {
 		title := fmt.Sprintf("Pod SUCCEEDED: %s - %s", event.Namespace, event.PodName)
 
-		if err := slackClient.PostMessageWithAttachment(channelID, "good", title, "", map[string]string{
-			"StartedAt":  event.StartedAt.String(),
-			"FinishedAt": event.FinishedAt.String(),
+		if err := slackClient.PostMessageWithAttachment(channelID, "good", title, "", []*slack.AttachmentField{
+			&slack.AttachmentField{
+				Title: "StartedAt",
+				Value: event.StartedAt.String(),
+			},
+			&slack.AttachmentField{
+				Title: "FinishedAt",
+				Value: event.FinishedAt.String(),
+			},
 		}); err != nil {
 			return err
 		}
@@ -138,11 +144,23 @@ func main() {
 	failedFunc := func(event *k8s.PodEvent) error {
 		title := fmt.Sprintf("Pod FAILED: %s - %s", event.Namespace, event.PodName)
 
-		if err := slackClient.PostMessageWithAttachment(channelID, "danger", title, "", map[string]string{
-			"StartedAt":  event.StartedAt.String(),
-			"FinishedAt": event.FinishedAt.String(),
-			"ExitCode":   strconv.Itoa(event.ExitCode),
-			"Reason":     event.Reason,
+		if err := slackClient.PostMessageWithAttachment(channelID, "danger", title, "", []*slack.AttachmentField{
+			&slack.AttachmentField{
+				Title: "StartedAt",
+				Value: event.StartedAt.String(),
+			},
+			&slack.AttachmentField{
+				Title: "FinishedAt",
+				Value: event.FinishedAt.String(),
+			},
+			&slack.AttachmentField{
+				Title: "ExitCode",
+				Value: strconv.Itoa(event.ExitCode),
+			},
+			&slack.AttachmentField{
+				Title: "Reason",
+				Value: event.Reason,
+			},
 		}); err != nil {
 			return err
 		}
