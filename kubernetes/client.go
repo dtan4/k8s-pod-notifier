@@ -108,35 +108,37 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, s
 
 				switch e.Type {
 				case watch.Modified:
+					if pod.DeletionTimestamp != nil {
+						continue
+					}
+
+					startedAt := pod.CreationTimestamp.Time
+
 					switch pod.Status.Phase {
 					case v1.PodSucceeded:
-						if pod.DeletionTimestamp == nil {
-							continue
-						}
-
-						startedAt := pod.CreationTimestamp.Time
-						finishedAt := pod.DeletionTimestamp.Time
-
-						succeededFunc(&PodEvent{
-							Namespace:  pod.Namespace,
-							PodName:    pod.Name,
-							StartedAt:  startedAt,
-							FinishedAt: finishedAt,
-							ExitCode:   0,
-							Reason:     "",
-						})
-					case v1.PodFailed:
-						if pod.DeletionTimestamp == nil {
-							continue
-						}
-
-						startedAt := pod.CreationTimestamp.Time
-						finishedAt := pod.DeletionTimestamp.Time
-
 						for _, cst := range pod.Status.ContainerStatuses {
 							if cst.State.Terminated == nil {
 								continue
 							}
+
+							finishedAt := cst.State.Terminated.FinishedAt.Time
+
+							succeededFunc(&PodEvent{
+								Namespace:  pod.Namespace,
+								PodName:    pod.Name,
+								StartedAt:  startedAt,
+								FinishedAt: finishedAt,
+								ExitCode:   0,
+								Reason:     "",
+							})
+						}
+					case v1.PodFailed:
+						for _, cst := range pod.Status.ContainerStatuses {
+							if cst.State.Terminated == nil {
+								continue
+							}
+
+							finishedAt := cst.State.Terminated.FinishedAt.Time
 
 							failedFunc(&PodEvent{
 								Namespace:  pod.Namespace,
