@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"strconv"
@@ -137,7 +138,7 @@ func main() {
 			return err
 		}
 
-		fmt.Println("success: " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
+		log.Println("success: " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
 
 		return nil
 	}
@@ -165,7 +166,7 @@ func main() {
 			return err
 		}
 
-		fmt.Println("failed:  " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
+		log.Println("failed:  " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
 
 		return nil
 	}
