@@ -19,28 +19,38 @@ func NewClient(token string) *Client {
 
 // GetChannelID retrieves internal ID of the given channel
 func (c *Client) GetChannelID(channel string) (string, error) {
-	ch, err := c.api.GetChannelInfo(channel)
+	chs, err := c.api.GetChannels(true)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to retrieve Slack channel info")
+		return "", errors.Wrap(err, "failed to list Slack channels")
 	}
 
-	return ch.ID, nil
+	for _, ch := range chs {
+		if ch.Name == channel {
+			return ch.ID, nil
+		}
+	}
+
+	return "", errors.Errorf("channel %s is not found", channel)
 }
 
-// PostAttachment posts message with attachment
-func (c *Client) PostAttachment(channelID string, fields map[string]string) error {
+// PostMessageWithAttachment posts message with attachment
+func (c *Client) PostMessageWithAttachment(channelID, color, title, text string, fields map[string]string) error {
 	attachmentFields := []slack.AttachmentField{}
 
 	for k, v := range fields {
 		attachmentFields = append(attachmentFields, slack.AttachmentField{
 			Title: k,
 			Value: v,
+			Short: true,
 		})
 	}
 
 	params := slack.PostMessageParameters{
 		Attachments: []slack.Attachment{
 			slack.Attachment{
+				Title:  title,
+				Text:   text,
+				Color:  color,
 				Fields: attachmentFields,
 			},
 		},
