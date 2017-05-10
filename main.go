@@ -57,11 +57,20 @@ func main() {
 
 	if slackAPIToken == "" {
 		if os.Getenv("SLACK_API_TOKEN") == "" {
-			fmt.Fprintln(os.Stderr, "Slack API TOKEN must be set (SLACK_API_TOKEN, --slack-api-token)")
+			fmt.Fprintln(os.Stderr, "Slack API token must be set (SLACK_API_TOKEN, --slack-api-token)")
 			os.Exit(1)
 		}
 
 		slackAPIToken = os.Getenv("SLACK_API_TOKEN")
+	}
+
+	if slackChannel == "" {
+		if os.Getenv("SLACK_CHANNEL") == "" {
+			fmt.Fprintln(os.Stderr, "Slack channel must be set (SLACK_CHANNEL, --slack-channel)")
+			os.Exit(1)
+		}
+
+		slackChannel = os.Getenv("SLACK_CHANNEL")
 	}
 
 	// Neither --fail nor --success was specified => Notify both fail and success
