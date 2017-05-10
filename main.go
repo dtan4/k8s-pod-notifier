@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 
 	flag "github.com/spf13/pflag"
 	"k8s.io/client-go/kubernetes"
@@ -110,24 +112,19 @@ func main() {
 				}
 
 				switch e.Type {
-				case watch.Added:
-					if pod.Status.Phase != v1.PodRunning {
-						continue
-					}
-
-					fmt.Println("Added: " + pod.Name)
-
 				case watch.Modified:
 					switch pod.Status.Phase {
-					case v1.PodRunning:
-						fmt.Println("Added: " + pod.Name)
 					case v1.PodSucceeded:
-						fmt.Println("Succeeded: " + pod.Name)
+						fmt.Println(strings.Join([]string{pod.Namespace, pod.Name}, "\t"))
 					case v1.PodFailed:
-						fmt.Println("Failed: " + pod.Name)
+						for _, cst := range pod.Status.ContainerStatuses {
+							if cst.State.Terminated == nil {
+								continue
+							}
+
+							fmt.Println(strings.Join([]string{pod.Namespace, pod.Name, strconv.Itoa(int(cst.State.Terminated.ExitCode)), cst.State.Terminated.Reason}, "\t"))
+						}
 					}
-				case watch.Deleted:
-					fmt.Println("Deleted: " + pod.Name)
 				}
 			case <-ctx.Done():
 				watcher.Stop()
