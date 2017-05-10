@@ -123,9 +123,10 @@ func main() {
 	defer cancel()
 
 	succeededFunc := func(event *k8s.PodEvent) error {
-		title := fmt.Sprintf("Pod Succeeded: %s - %s", event.Namespace, event.PodName)
+		title := "Pod Succeeded"
+		text := fmt.Sprintf("[%s] %s", event.Namespace, event.PodName)
 
-		if err := slackClient.PostMessageWithAttachment(channelID, "good", title, "", []*slack.AttachmentField{
+		if err := slackClient.PostMessageWithAttachment(channelID, "good", title, text, []*slack.AttachmentField{
 			&slack.AttachmentField{
 				Title: "StartedAt",
 				Value: event.StartedAt.String(),
@@ -143,9 +144,10 @@ func main() {
 		return nil
 	}
 	failedFunc := func(event *k8s.PodEvent) error {
-		title := fmt.Sprintf("Pod Failed: %s - %s", event.Namespace, event.PodName)
+		title := "Pod Failed"
+		text := fmt.Sprintf("[%s] %s", event.Namespace, event.PodName)
 
-		if err := slackClient.PostMessageWithAttachment(channelID, "danger", title, "", []*slack.AttachmentField{
+		if err := slackClient.PostMessageWithAttachment(channelID, "danger", title, text, []*slack.AttachmentField{
 			&slack.AttachmentField{
 				Title: "StartedAt",
 				Value: event.StartedAt.String(),
