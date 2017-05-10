@@ -20,6 +20,8 @@ func main() {
 		kubeconfig    string
 		labels        string
 		namespace     string
+		notifyFail    bool
+		notifySuccess bool
 		slackAPIToken string
 		slackChannel  string
 	)
@@ -34,6 +36,8 @@ func main() {
 	flags.StringVar(&kubeconfig, "kubeconfig", "", "Path of kubeconfig")
 	flags.StringVarP(&labels, "labels", "l", "", "Label filter query")
 	flags.StringVarP(&namespace, "namespace", "n", "", "Kubernetes namespace")
+	flags.BoolVar(&notifyFail, "fail", false, "Notify failure of Pod only")
+	flags.BoolVar(&notifySuccess, "success", false, "Notify success of Pod only")
 	flags.StringVar(&slackAPIToken, "slack-api-token", "", "Slack API token")
 	flags.StringVar(&slackChannel, "slack-channel", "", "Slack channel to post")
 
@@ -57,6 +61,12 @@ func main() {
 		}
 
 		slackAPIToken = os.Getenv("SLACK_API_TOKEN")
+	}
+
+	// Neither --fail nor --success was specified => Notify both fail and success
+	if !(notifyFail || notifySuccess) {
+		notifyFail = true
+		notifySuccess = true
 	}
 
 	var k8sClient *k8s.Client
@@ -144,7 +154,7 @@ func main() {
 
 	fmt.Println("Watching...")
 
-	if err := k8sClient.WatchPodEvents(ctx, namespace, labels, succeededFunc, failedFunc); err != nil {
+	if err := k8sClient.WatchPodEvents(ctx, namespace, labels, notifySuccess, notifyFail, succeededFunc, failedFunc); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

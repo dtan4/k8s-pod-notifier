@@ -85,7 +85,7 @@ func (c *Client) NamespaceInConfig() (string, error) {
 }
 
 // WatchPodEvents watches Pod events
-func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, succeededFunc, failedFunc NotifyFunc) error {
+func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, notifySuccess, notifyFail bool, succeededFunc, failedFunc NotifyFunc) error {
 	watcher, err := c.clientset.Core().Pods(namespace).Watch(v1.ListOptions{
 		LabelSelector: labels,
 	})
@@ -121,16 +121,18 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, s
 								continue
 							}
 
-							finishedAt := cst.State.Terminated.FinishedAt.Time
+							if notifySuccess {
+								finishedAt := cst.State.Terminated.FinishedAt.Time
 
-							succeededFunc(&PodEvent{
-								Namespace:  pod.Namespace,
-								PodName:    pod.Name,
-								StartedAt:  startedAt,
-								FinishedAt: finishedAt,
-								ExitCode:   0,
-								Reason:     "",
-							})
+								succeededFunc(&PodEvent{
+									Namespace:  pod.Namespace,
+									PodName:    pod.Name,
+									StartedAt:  startedAt,
+									FinishedAt: finishedAt,
+									ExitCode:   0,
+									Reason:     "",
+								})
+							}
 
 							break
 						}
@@ -140,16 +142,18 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, s
 								continue
 							}
 
-							finishedAt := cst.State.Terminated.FinishedAt.Time
+							if notifyFail {
+								finishedAt := cst.State.Terminated.FinishedAt.Time
 
-							failedFunc(&PodEvent{
-								Namespace:  pod.Namespace,
-								PodName:    pod.Name,
-								StartedAt:  startedAt,
-								FinishedAt: finishedAt,
-								ExitCode:   int(cst.State.Terminated.ExitCode),
-								Reason:     cst.State.Terminated.Reason,
-							})
+								failedFunc(&PodEvent{
+									Namespace:  pod.Namespace,
+									PodName:    pod.Name,
+									StartedAt:  startedAt,
+									FinishedAt: finishedAt,
+									ExitCode:   int(cst.State.Terminated.ExitCode),
+									Reason:     cst.State.Terminated.Reason,
+								})
+							}
 
 							break
 						}
