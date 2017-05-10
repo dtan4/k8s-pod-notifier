@@ -2,9 +2,6 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
@@ -18,6 +15,9 @@ type Client struct {
 	clientConfig clientcmd.ClientConfig
 	clientset    *kubernetes.Clientset
 }
+
+// NotifyFunc represents callback function for Pod event
+type NotifyFunc func(namespace, podName string, exitCode int, reason string) error
 
 // NewClient creates Client object using local kubecfg
 func NewClient(kubeconfig, context string) (*Client, error) {
@@ -56,7 +56,7 @@ func (c *Client) NamespaceInConfig() (string, error) {
 }
 
 // WatchPodEvents watches Pod events
-func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string) error {
+func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, succeededFunc, failedFunc NotifyFunc) error {
 	watcher, err := c.clientset.Core().Pods(namespace).Watch(v1.ListOptions{
 		LabelSelector: labels,
 	})
@@ -81,14 +81,14 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string) e
 				case watch.Modified:
 					switch pod.Status.Phase {
 					case v1.PodSucceeded:
-						fmt.Println(strings.Join([]string{pod.Namespace, pod.Name}, "\t"))
+						succeededFunc(pod.Namespace, pod.Name, 0, "")
 					case v1.PodFailed:
 						for _, cst := range pod.Status.ContainerStatuses {
 							if cst.State.Terminated == nil {
 								continue
 							}
 
-							fmt.Println(strings.Join([]string{pod.Namespace, pod.Name, strconv.Itoa(int(cst.State.Terminated.ExitCode)), cst.State.Terminated.Reason}, "\t"))
+							failedFunc(pod.Namespace, pod.Name, int(cst.State.Terminated.ExitCode), cst.State.Terminated.Reason)
 						}
 					}
 				}

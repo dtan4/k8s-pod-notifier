@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 
 	k8s "github.com/dtan4/k8s-pod-notifier/kubernetes"
 	flag "github.com/spf13/pflag"
@@ -67,7 +69,16 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if err := client.WatchPodEvents(ctx, namespace, labels); err != nil {
+	succeededFunc := func(namespace, podName string, exitCode int, reason string) error {
+		fmt.Println("success: " + strings.Join([]string{namespace, podName, strconv.Itoa(exitCode), reason}, "\t"))
+		return nil
+	}
+	failedFunc := func(namespace, podName string, exitCode int, reason string) error {
+		fmt.Println("failed:  " + strings.Join([]string{namespace, podName, strconv.Itoa(exitCode), reason}, "\t"))
+		return nil
+	}
+
+	if err := client.WatchPodEvents(ctx, namespace, labels, succeededFunc, failedFunc); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
