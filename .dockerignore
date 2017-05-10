@@ -1,0 +1,3 @@
+*
+!Dockerfile
+!bin/k8s-pod-notifier
