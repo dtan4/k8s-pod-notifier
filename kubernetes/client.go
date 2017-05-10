@@ -2,7 +2,6 @@ package kubernetes
 
 import (
 	"context"
-	"time"
 
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
@@ -17,19 +16,6 @@ type Client struct {
 	clientConfig clientcmd.ClientConfig
 	clientset    *kubernetes.Clientset
 }
-
-// PodEvent represents Pod termination event
-type PodEvent struct {
-	Namespace  string
-	PodName    string
-	StartedAt  time.Time
-	FinishedAt time.Time
-	ExitCode   int
-	Reason     string
-}
-
-// NotifyFunc represents callback function for Pod event
-type NotifyFunc func(event *PodEvent) error
 
 // NewClient creates Client object using local kubecfg
 func NewClient(kubeconfig, context string) (*Client, error) {

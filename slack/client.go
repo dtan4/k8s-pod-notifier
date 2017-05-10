@@ -5,12 +5,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// AttachmentField represents the field of Slack message attachment
-type AttachmentField struct {
-	Title string
-	Value string
-}
-
 // Client represents the wrapper of Slack API client
 type Client struct {
 	api *slack.Client
