@@ -1,4 +1,8 @@
-hash: 248fdd96d98087bb255766e6fbe7570beb8ae7a8b49142b639f6b98478bf847e
-updated: 2017-05-10T12:10:17.767032693+09:00
-imports: []
+hash: f3e7287d557e7c15759a511a886a8a2e14c371048630d4bfc6e99ddb822640ae
+updated: 2017-05-10T12:16:05.503073047+09:00
+imports:
+- name: github.com/spf13/pflag
+  version: c7e63cf4530bcd3ba943729cee0efeff2ebea63f
+- name: k8s.io/client-go
+  version: e121606b0d09b2e1c467183ee46217fa85a6b672
 testImports: []
