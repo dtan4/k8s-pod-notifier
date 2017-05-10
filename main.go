@@ -16,6 +16,7 @@ import (
 func main() {
 	var (
 		kubeContext   string
+		inCluster     bool
 		kubeconfig    string
 		labels        string
 		namespace     string
@@ -29,6 +30,7 @@ func main() {
 	}
 
 	flags.StringVar(&kubeContext, "context", "", "Kubernetes context")
+	flags.BoolVar(&inCluster, "in-cluster", false, "Execute in Kubernetes cluster")
 	flags.StringVar(&kubeconfig, "kubeconfig", "", "Path of kubeconfig")
 	flags.StringVarP(&labels, "labels", "l", "", "Label filter query")
 	flags.StringVarP(&namespace, "namespace", "n", "", "Kubernetes namespace")
@@ -57,24 +59,42 @@ func main() {
 		slackAPIToken = os.Getenv("SLACK_API_TOKEN")
 	}
 
-	k8sClient, err := k8s.NewClient(kubeconfig, kubeContext)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	var k8sClient *k8s.Client
 
-	if namespace == "" {
-		namespaceInConfig, err := k8sClient.NamespaceInConfig()
+	if inCluster {
+		c, err := k8s.NewClientInCluster()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 
-		if namespaceInConfig == "" {
+		if namespace == "" {
 			namespace = k8s.DefaultNamespace()
-		} else {
-			namespace = namespaceInConfig
 		}
+
+		k8sClient = c
+	} else {
+		c, err := k8s.NewClient(kubeconfig, kubeContext)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		if namespace == "" {
+			namespaceInConfig, err := c.NamespaceInConfig()
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+
+			if namespaceInConfig == "" {
+				namespace = k8s.DefaultNamespace()
+			} else {
+				namespace = namespaceInConfig
+			}
+		}
+
+		k8sClient = c
 	}
 
 	slackClient := slack.NewClient(slackAPIToken)

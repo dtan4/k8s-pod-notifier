@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/watch"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -49,6 +50,23 @@ func NewClient(kubeconfig, context string) (*Client, error) {
 	return &Client{
 		clientConfig: clientConfig,
 		clientset:    clientset,
+	}, nil
+}
+
+// NewClientInCluster creates Client object in Kubernetes cluster
+func NewClientInCluster() (*Client, error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load kubeconfig in cluster")
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, errors.Wrap(err, "falied to load clientset")
+	}
+
+	return &Client{
+		clientset: clientset,
 	}, nil
 }
 
