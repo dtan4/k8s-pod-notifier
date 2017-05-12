@@ -156,6 +156,27 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, n
 
 							break
 						}
+					default:
+						for _, cst := range pod.Status.ContainerStatuses {
+							if cst.State.Terminated == nil {
+								continue
+							}
+
+							if notifyFail {
+								finishedAt := cst.State.Terminated.FinishedAt.Time
+
+								failedFunc(&PodEvent{
+									Namespace:  pod.Namespace,
+									PodName:    pod.Name,
+									StartedAt:  startedAt,
+									FinishedAt: finishedAt,
+									ExitCode:   int(cst.State.Terminated.ExitCode),
+									Reason:     cst.State.Terminated.Reason,
+								})
+							}
+
+							break
+						}
 					}
 				}
 			case <-ctx.Done():
