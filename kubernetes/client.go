@@ -118,6 +118,7 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, n
 										FinishedAt: finishedAt,
 										ExitCode:   0,
 										Reason:     "",
+										Message:    "",
 									})
 								}
 							} else {
@@ -129,6 +130,7 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, n
 										FinishedAt: finishedAt,
 										ExitCode:   int(cst.State.Terminated.ExitCode),
 										Reason:     cst.State.Terminated.Reason,
+										Message:    "",
 									})
 								}
 							}
@@ -145,6 +147,7 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, n
 									FinishedAt: startedAt,
 									ExitCode:   -1,
 									Reason:     pod.Status.Reason,
+									Message:    pod.Status.Message,
 								})
 							}
 						} else {
@@ -163,6 +166,7 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, n
 										FinishedAt: finishedAt,
 										ExitCode:   int(cst.State.Terminated.ExitCode),
 										Reason:     cst.State.Terminated.Reason,
+										Message:    pod.Status.Message,
 									})
 								}
 
@@ -185,6 +189,7 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, n
 									FinishedAt: finishedAt,
 									ExitCode:   int(cst.State.Terminated.ExitCode),
 									Reason:     cst.State.Terminated.Reason,
+									Message:    pod.Status.Message,
 								})
 							}
 

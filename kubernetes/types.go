@@ -12,6 +12,7 @@ type PodEvent struct {
 	FinishedAt time.Time
 	ExitCode   int
 	Reason     string
+	Message    string
 }
 
 // NotifyFunc represents callback function for Pod event
