@@ -10,7 +10,7 @@ cache:
 addons:
   apt:
     sources:
-      - ppa:masterminds/glide
+      - sourceline: 'ppa:masterminds/glide'
     packages:
       - glide
 before_install:
