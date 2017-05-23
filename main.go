@@ -156,7 +156,7 @@ func main() {
 		title := "Pod Failed"
 		text := fmt.Sprintf("[%s] %s", event.Namespace, event.PodName)
 
-		if err := slackClient.PostMessageWithAttachment(channelID, "danger", title, text, []*slack.AttachmentField{
+		attachments := []*slack.AttachmentField{
 			&slack.AttachmentField{
 				Title: "StartedAt",
 				Value: event.StartedAt.String(),
@@ -165,15 +165,30 @@ func main() {
 				Title: "FinishedAt",
 				Value: event.FinishedAt.String(),
 			},
-			&slack.AttachmentField{
+		}
+
+		if event.ExitCode >= 0 {
+			attachments = append(attachments, &slack.AttachmentField{
 				Title: "ExitCode",
 				Value: strconv.Itoa(event.ExitCode),
-			},
-			&slack.AttachmentField{
+			})
+		}
+
+		if event.Reason != "" {
+			attachments = append(attachments, &slack.AttachmentField{
 				Title: "Reason",
 				Value: event.Reason,
-			},
-		}); err != nil {
+			})
+		}
+
+		if event.Message != "" {
+			attachments = append(attachments, &slack.AttachmentField{
+				Title: "Message",
+				Value: event.Message,
+			})
+		}
+
+		if err := slackClient.PostMessageWithAttachment(channelID, "danger", title, text, attachments); err != nil {
 			return err
 		}
 
