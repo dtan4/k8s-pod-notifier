@@ -18,8 +18,8 @@ script:
   - make test
 before_deploy:
   - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 make
-  - if [ -n $TRAVIS_TAG ]; make cross-build; fi
-  - if [ -n $TRAVIS_TAG ]; make dist; fi
+  - if [ -n $TRAVIS_TAG ]; then make cross-build; fi
+  - if [ -n $TRAVIS_TAG ]; then make dist; fi
 deploy:
   - provider: releases
     skip_cleanup: true
