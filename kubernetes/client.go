@@ -93,17 +93,20 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, n
 					continue
 				}
 
+				log.WithFields(log.Fields{
+					"action":     e.Type,
+					"namespace":  pod.Namespace,
+					"name":       pod.Name,
+					"phase":      pod.Status.Phase,
+					"reason":     pod.Status.Reason,
+					"container#": len(pod.Status.ContainerStatuses),
+				}).Debug("event notified")
+
 				switch e.Type {
 				case watch.Modified:
 					if pod.DeletionTimestamp != nil {
 						continue
 					}
-
-					log.WithFields(log.Fields{
-						"namespace": pod.Namespace,
-						"name":      pod.Name,
-						"phase":     pod.Status.Phase,
-					}).Debug("pod modified")
 
 					startedAt := pod.CreationTimestamp.Time
 
