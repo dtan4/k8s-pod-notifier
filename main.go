@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 
 	k8s "github.com/dtan4/k8s-pod-notifier/kubernetes"
 	"github.com/dtan4/k8s-pod-notifier/slack"
@@ -150,7 +149,12 @@ func main() {
 			return err
 		}
 
-		log.Info("success: " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
+		log.WithFields(log.Fields{
+			"namespace": event.Namespace,
+			"name":      event.PodName,
+			"exitCode":  event.ExitCode,
+			"reason":    event.Reason,
+		}).Info("success")
 
 		return nil
 	}
@@ -194,7 +198,12 @@ func main() {
 			return err
 		}
 
-		log.Info("failed:  " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
+		log.WithFields(log.Fields{
+			"namespace": event.Namespace,
+			"name":      event.PodName,
+			"exitCode":  event.ExitCode,
+			"reason":    event.Reason,
+		}).Info("failed")
 
 		return nil
 	}
