@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/watch"
@@ -97,6 +98,12 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, n
 					if pod.DeletionTimestamp != nil {
 						continue
 					}
+
+					log.WithFields(log.Fields{
+						"namespace": pod.Namespace,
+						"name":      pod.Name,
+						"phase":     pod.Status.Phase,
+					}).Debug("pod modified")
 
 					startedAt := pod.CreationTimestamp.Time
 

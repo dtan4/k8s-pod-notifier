@@ -199,6 +199,15 @@ func main() {
 		return nil
 	}
 
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
+
+	if debug {
+		log.SetLevel(log.DebugLevel)
+		log.Debug("debug mode enabled")
+	}
+
 	log.Info("Watching...")
 
 	if err := k8sClient.WatchPodEvents(ctx, namespace, labels, notifySuccess, notifyFail, succeededFunc, failedFunc); err != nil {
