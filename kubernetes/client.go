@@ -174,40 +174,26 @@ func (c *Client) WatchPodEvents(ctx context.Context, namespace, labels string, n
 							}
 						}
 					default:
-						if len(pod.Status.ContainerStatuses) == 0 { // e.g. Pod was evicted
+						for _, cst := range pod.Status.ContainerStatuses {
+							if cst.State.Terminated == nil {
+								continue
+							}
+
 							if notifyFail {
+								finishedAt := cst.State.Terminated.FinishedAt.Time
+
 								failedFunc(&PodEvent{
 									Namespace:  pod.Namespace,
 									PodName:    pod.Name,
 									StartedAt:  startedAt,
-									FinishedAt: startedAt,
-									ExitCode:   -1,
-									Reason:     pod.Status.Reason,
+									FinishedAt: finishedAt,
+									ExitCode:   int(cst.State.Terminated.ExitCode),
+									Reason:     cst.State.Terminated.Reason,
 									Message:    pod.Status.Message,
 								})
 							}
-						} else {
-							for _, cst := range pod.Status.ContainerStatuses {
-								if cst.State.Terminated == nil {
-									continue
-								}
 
-								if notifyFail {
-									finishedAt := cst.State.Terminated.FinishedAt.Time
-
-									failedFunc(&PodEvent{
-										Namespace:  pod.Namespace,
-										PodName:    pod.Name,
-										StartedAt:  startedAt,
-										FinishedAt: finishedAt,
-										ExitCode:   int(cst.State.Terminated.ExitCode),
-										Reason:     cst.State.Terminated.Reason,
-										Message:    pod.Status.Message,
-									})
-								}
-
-								break
-							}
+							break
 						}
 					}
 				}
