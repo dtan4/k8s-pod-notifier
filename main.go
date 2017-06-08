@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 
 	k8s "github.com/dtan4/k8s-pod-notifier/kubernetes"
 	"github.com/dtan4/k8s-pod-notifier/slack"
+	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
 )
 
@@ -150,7 +150,7 @@ func main() {
 			return err
 		}
 
-		log.Println("success: " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
+		log.Info("success: " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
 
 		return nil
 	}
@@ -194,12 +194,12 @@ func main() {
 			return err
 		}
 
-		log.Println("failed:  " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
+		log.Info("failed:  " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
 
 		return nil
 	}
 
-	fmt.Println("Watching...")
+	log.Info("Watching...")
 
 	if err := k8sClient.WatchPodEvents(ctx, namespace, labels, notifySuccess, notifyFail, succeededFunc, failedFunc); err != nil {
 		fmt.Fprintln(os.Stderr, err)
