@@ -16,6 +16,7 @@ import (
 
 func main() {
 	var (
+		debug         bool
 		kubeContext   string
 		inCluster     bool
 		kubeconfig    string
@@ -32,6 +33,7 @@ func main() {
 		flags.PrintDefaults()
 	}
 
+	flags.BoolVar(&debug, "debug", false, "Debug mode")
 	flags.StringVar(&kubeContext, "context", "", "Kubernetes context")
 	flags.BoolVar(&inCluster, "in-cluster", false, "Execute in Kubernetes cluster")
 	flags.StringVar(&kubeconfig, "kubeconfig", "", "Path of kubeconfig")
