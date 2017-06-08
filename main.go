@@ -3,19 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 
 	k8s "github.com/dtan4/k8s-pod-notifier/kubernetes"
 	"github.com/dtan4/k8s-pod-notifier/slack"
+	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
 )
 
 func main() {
 	var (
+		debug         bool
 		kubeContext   string
 		inCluster     bool
 		kubeconfig    string
@@ -32,6 +32,7 @@ func main() {
 		flags.PrintDefaults()
 	}
 
+	flags.BoolVar(&debug, "debug", false, "Debug mode")
 	flags.StringVar(&kubeContext, "context", "", "Kubernetes context")
 	flags.BoolVar(&inCluster, "in-cluster", false, "Execute in Kubernetes cluster")
 	flags.StringVar(&kubeconfig, "kubeconfig", "", "Path of kubeconfig")
@@ -148,7 +149,12 @@ func main() {
 			return err
 		}
 
-		log.Println("success: " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
+		log.WithFields(log.Fields{
+			"namespace": event.Namespace,
+			"name":      event.PodName,
+			"exitCode":  event.ExitCode,
+			"reason":    event.Reason,
+		}).Info("success")
 
 		return nil
 	}
@@ -192,12 +198,26 @@ func main() {
 			return err
 		}
 
-		log.Println("failed:  " + strings.Join([]string{event.Namespace, event.PodName, strconv.Itoa(event.ExitCode), event.Reason}, "\t"))
+		log.WithFields(log.Fields{
+			"namespace": event.Namespace,
+			"name":      event.PodName,
+			"exitCode":  event.ExitCode,
+			"reason":    event.Reason,
+		}).Info("failed")
 
 		return nil
 	}
 
-	fmt.Println("Watching...")
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
+
+	if debug {
+		log.SetLevel(log.DebugLevel)
+		log.Debug("debug mode enabled")
+	}
+
+	log.Info("Watching...")
 
 	if err := k8sClient.WatchPodEvents(ctx, namespace, labels, notifySuccess, notifyFail, succeededFunc, failedFunc); err != nil {
 		fmt.Fprintln(os.Stderr, err)
